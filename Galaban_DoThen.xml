@@ -159,26 +159,26 @@ function OnPluginCommandEntered(sText)
     -- Still, to fix this the entire loop needs changed to a byte-by-byte check to look for semi-colons
     -- ... a true parser.  Doing that in Lua, though, would not be exactly efficient.
 
-    local finalCommand = sText
     if (thenStart ~= nil) then
 
         local stackchar = GetAlphaOption("command_stack_character")
+
+        local thenDoStr = sText:sub(thenCommand)
 
         if (thenStart ~= 1) then
             -- Must be in a sentence or something.
             if (sText:sub(thenStart-1,thenStart-1) ~= stackchar) then
                 return sText
             end
-            finalCommand = sText:sub(1,thenStart-2)
-            Execute(finalCommand)
+            local doNow = sText:sub(1,thenStart-2)
+            Execute(doNow)
         end
 
-        implThenCommand(sText:sub(thenCommand))
+        implThenCommand(thenDoStr)
         PushCommand(sText)
-        finalCommand = "\t"
-
+        return "\t"
     end    
-    return finalCommand
+    return sText
 end
 
 
@@ -223,8 +223,12 @@ end
 
 
 function setDoCommand(rname, rLine, rWildcards)
+    implSetDoCommand(rWildcards[1], rWildcards[2])
+end
 
-    local count_val = tonumber(rWildcards[1])
+function implSetDoCommand(count,command)
+
+    local count_val = tonumber(count)
 
     if (count_val == nil) then
         Note("The count must be a valid number")
@@ -237,7 +241,7 @@ function setDoCommand(rname, rLine, rWildcards)
         return
     end
 
-    do_command = rWildcards[2]
+    do_command = command
     do_count = count_val
 
     --NOTE: We have to strip the value for display only.
